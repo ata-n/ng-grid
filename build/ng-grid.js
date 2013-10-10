@@ -276,9 +276,17 @@ angular.module('ngGrid.services').factory('$domUtilityService',['$utilityService
         for (var i = 0; i < cols.length; i++) {
             var col = cols[i];
             if (col.visible !== false) {
-                css += "." + gridId + " .col" + i + " { width: " + col.width + "px; left: " + sumWidth + "px; height: " + rowHeight + "px }" +
-                    "." + gridId + " .colt" + i + " { width: " + col.width + "px; }";
-                sumWidth += col.width;
+            //    css += "." + gridId + " .col" + i + " { width: " + col.width + "px; left: " + sumWidth + "px; height: " + rowHeight + "px }" +
+            //        "." + gridId + " .colt" + i + " { width: " + col.width + "px; }";
+            	var colLeft;
+							if (!col.colDef.pinRight) {
+						  	colLeft = col.pinned ? grid.$viewport.scrollLeft() + sumWidth : sumWidth;
+							} else {
+						  	colLeft = grid.$viewport.width() - col.width +  grid.$viewport.scrollLeft();
+							};
+						 	css += "." + gridId + " .col" + i + " { width: " + col.width + "px; left : " + colLeft + "px; height: " + rowHeight + "px }" +
+						  		"." + gridId + " .colt" + i + " { width: " + col.width + "px; }";
+    					sumWidth += col.width;
             }
         }
 
@@ -1363,7 +1371,8 @@ var ngGrid = function ($scope, options, sortService, domUtilityService, $filter,
                     enableResize: self.config.enableColumnResize,
                     enableSort: self.config.enableSorting,
                     enablePinning: self.config.enablePinning,
-                    enableCellEdit: self.config.enableCellEdit || self.config.enableCellEditOnFocus
+                    enableCellEdit: self.config.enableCellEdit || self.config.enableCellEditOnFocus,
+										pinRight: self.config.pinRight
                 }, $scope, self, domUtilityService, $templateCache, $utils);
                 var indx = self.config.groups.indexOf(colDef.field);
                 if (indx !== -1) {
@@ -1713,7 +1722,13 @@ var ngGrid = function ($scope, options, sortService, domUtilityService, $filter,
                 var w = col.width + colwidths;
                 if (col.pinned) {
                     addCol(col);
-                    var newLeft = i > 0 ? (scrollLeft + totalLeft) : scrollLeft;
+                    //var newLeft = i > 0 ? (scrollLeft + totalLeft) : scrollLeft;
+										var newLeft;
+										if (!col.colDef.pinRight) {
+											newLeft = i > 0 ? (scrollLeft + totalLeft) : scrollLeft;
+										} else {
+											newLeft = parseInt($scope.viewportStyle().width) - col.width + scrollLeft;
+										}
                     domUtilityService.setColLeft(col, newLeft, self);
                     totalLeft += col.width;
                 } else {
